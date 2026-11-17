@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>For You</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  /* Welcome screen */
+.welcome-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 25px;
+  background: radial-gradient(
+    ellipse at center,
+    #40183e 0%,
+    #1b0b2b 65%,
+    #0b0618 100%
+  );
+  transition: opacity 1s ease, visibility 1s ease;
+}
+
+.welcome-screen.hide {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.welcome-screen h1 {
+  color: #ffd6e4;
+  font-size: clamp(2rem, 6vw, 3.5rem);
+  font-style: italic;
+  text-shadow: 0 0 25px #ff8fb1;
+  margin-bottom: 20px;
+}
+
+.welcome-screen p {
+  color: #ffd6e4;
+  font-size: clamp(1.1rem, 3vw, 1.5rem);
+  max-width: 550px;
+  line-height: 1.7;
+  margin-bottom: 35px;
+}
+
+.welcome-gif {
+  width: 450px;
+  height: 330px;
+  object-fit: contain;
+  border-radius: 30px;
+  margin-bottom: 30px;
+  filter: drop-shadow(0 0 12px rgba(255,143,177,.5));
+}
+
+.open-button {
+  padding: 15px 35px;
+  border: 1px solid #ffd6e4;
+  border-radius: 50px;
+  background: rgba(255,143,177,.2);
+  color: #ffd6e4;
+  font-family: inherit;
+  font-size: 1.3rem;
+  cursor: pointer;
+  box-shadow: 0 0 25px rgba(255,143,177,.5);
+  transition: .3s ease;
+}
+
+.open-button:hover {
+  transform: scale(1.08);
+  background: rgba(255,143,177,.4);
+  box-shadow: 0 0 35px #ff8fb1;
+}
+
+/* Hide slideshow before opening */
+.stage {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 1s ease;
+}
+
+.stage.show {
+  opacity: 1;
+  visibility: visible;
+}
+  :root {
+    --night-top: #0b0618;
+    --night-bottom: #2a0f3a;
+    --rose: #ff8fb1;
+    --blush: #ffd6e4;
+    --gold: #ffe3a3;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; }
+  body {
+    background: radial-gradient(ellipse at 50% 110%, #5a1f4d 0%, var(--night-bottom) 35%, var(--night-top) 80%);
+    font-family: "Cormorant Garamond", Georgia, serif;
+    color: var(--blush);
+    cursor: default;
+  }
+  canvas { position: fixed; inset: 0; pointer-events: none; }
+  #stars { z-index: 0; }
+  #sparkles { z-index: 10; }
+
+  .stage {
+    position: relative; z-index: 1;
+    height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 1.2rem;
+    padding: 1rem;
+  }
+  .title {
+    font-style: italic;
+    font-size: clamp(1.4rem, 3.5vw, 2.2rem);
+    letter-spacing: .04em;
+    text-shadow: 0 0 18px rgba(255,143,177,.6);
+  }
+  .frame {
+    position: relative;
+    display: flex; align-items: center; gap: clamp(.5rem, 2vw, 1.5rem);
+  }
+  
+.video-wrap {
+    position: relative;
+    width: fit-content;
+    height: auto;
+    max-width: 85vw;
+    max-height: 70vh;
+    border-radius: 22px;
+    overflow: hidden;
+    background: #000;
+    box-shadow:
+      0 0 0 2px rgba(255,214,228,.35),
+      0 0 40px rgba(255,143,177,.45),
+      0 0 120px rgba(200,90,170,.35);
+}
+
+
+.stage {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.2rem;
+  padding: 1rem;
+}
+
+.frame {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.video-wrap {
+  width: fit-content;
+  max-width: 90vw;
+  max-height: 70vh;
+  border-radius: 22px;
+  overflow: hidden;
+  background: #000;
+  box-shadow:
+    0 0 0 2px rgba(255,214,228,.35),
+    0 0 40px rgba(255,143,177,.45),
+    0 0 120px rgba(200,90,170,.35);
+}
+
+video {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 90vw;
+  max-height: 70vh;
+  object-fit: contain;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.arrow {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255,214,228,.6);
+  background: rgba(255,143,177,.12);
+  color: var(--blush);
+  font-size: 1.6rem;
+  cursor: pointer;
+  transition: .25s ease;
+}
+
+.arrow:hover {
+  transform: scale(1.12);
+  background: rgba(255,143,177,.3);
+  box-shadow: 0 0 22px rgba(255,143,177,.7);
+}
+
+.dots {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+}
+
+.dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(255,214,228,.3);
+}
+
+.dot.on {
+  background: var(--rose);
+  box-shadow: 0 0 10px var(--rose);
+}
+
+video.fade {
+  opacity: 0;
+  transition: opacity .3s ease;
+}
+
+@media (max-width: 640px) {
+  .video-wrap {
+    max-width: 92vw;
+  }
+
+  video {
+    max-width: 92vw;
+    max-height: 60vh;
+  }
+
+  .controls {
+    gap: .8rem;
+  }
+}
+
+
+  /* CAT GIF */
+  .cat-image {
+    width: clamp(220px, 45vw, 400px);
+    height: auto;
+    object-fit: contain;
+    animation: catBounce 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 20px rgba(255,143,177,.4));
+  }
+
+  /* ===== CAT FLOWER ENDING ===== */
+
+.ending-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  padding: 25px;
+
+  background: radial-gradient(
+    ellipse at center,
+    #40183e 0%,
+    #1b0b2b 65%,
+    #0b0618 100%
+  );
+
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 1.5s ease, visibility 1.5s ease;
+}
+
+.ending-screen.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.cat-container {
+  position: relative;
+  margin-bottom: 35px;
+  opacity: 0;
+}
+
+.ending-screen.show .cat-container {
+  animation: catAppear 1s cubic-bezier(.17,.89,.32,1.49) both;
+}
+
+.cat {
+  font-size: clamp(100px, 20vw, 160px);
+  animation: catBounce 2s ease-in-out infinite;
+}
+
+.flowers {
+  position: absolute;
+  font-size: clamp(45px, 10vw, 75px);
+  right: -35px;
+  bottom: 5px;
+  transform: rotate(-15deg);
+  animation: flowerGive 1.5s ease-in-out infinite alternate;
+}
+
+.ending-screen h1 {
+  color: #ffd6e4;
+  font-size: clamp(2rem, 6vw, 3rem);
+  font-style: italic;
+  text-shadow: 0 0 25px #ff8fb1;
+  margin-bottom: 18px;
+  animation: fadeUp 1.5s ease both;
+}
+
+.ending-screen p {
+  color: #ffd6e4;
+  font-size: clamp(1.1rem, 3vw, 1.5rem);
+  line-height: 1.8;
+  animation: fadeUp 2s ease both;
+}
+
+.hearts {
+  color: #ff8fb1;
+  font-size: 2rem;
+  margin-top: 25px;
+  letter-spacing: 15px;
+  animation: heartGlow 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes catAppear {
+  from {
+    transform: translateY(150px) scale(0);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes catBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+
+@keyframes flowerGive {
+  from { transform: rotate(-15deg) translateY(0); }
+  to { transform: rotate(8deg) translateY(-10px); }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heartGlow {
+  from { text-shadow: 0 0 5px #ff8fb1; }
+  to { text-shadow: 0 0 25px #ff8fb1; }
+}
+
+</style>
+  
+
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+<canvas id="sparkles"></canvas>
+
+<audio id="bgMusic" loop>
+  <source src="Sukidakara.mp3" type="audio/mpeg">
+</audio>
+
+<!-- WELCOME SCREEN -->
+<div class="welcome-screen" id="welcomeScreen">
+
+  <h1>Shoti, </h1>
+
+  <p>
+    I made something special for you. ( it's all hand drawn ofc ❤︎. ε(*´・ω・)з )
+    I hope you like it.
+    
+  </p>
+
+  <img src="munch.gif" class="welcome-gif" alt="Cute GIF">
+
+  <button class="open-button" id="openButton">
+    Open
+  </button>
+
+  
+  
+</div>
+
+
+<main class="stage">
+  <h1 class="title">(っ˶ ˘ ᵕ˘)ˆᵕ ˆ˶ς)</h1>
+
+  <div class="frame">
+    <div class="video-wrap">
+      <video
+        id="player"
+        playsinline
+        preload="auto"
+        muted
+      ></video>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="arrow prev" id="prev" aria-label="Previous video">
+      &#8592;
+    </button>
+
+    <div class="dots" id="dots"></div>
+
+    <button class="arrow next" id="next" aria-label="Next video">
+      &#8594;
+    </button>
+  </div>
+</main>
+
+
+<!-- CAT FLOWER SURPRISE -->
+<div class="ending-screen" id="endingScreen">
+
+ <div class="cat-container">
+  <img
+    src="cat.gif"
+    class="cat-image"
+    alt="A cute cat giving flowers"
+  >
+</div>
+
+  <h1>Thank you for sticking around HAHA ♡</h1>
+
+  <p>
+    This art of mine wouldn't exist without you. 
+    <br>
+    In every mundane thing we do together, I find art in it and became meaningful because of you. ♡
+  </p>
+
+  <div class="hearts">♡ ♥ ♡</div>
+
+</div>
+
+<script>
+
+// Welcome screen and opening button
+
+/* =====================================
+   ELEMENTS
+===================================== */
+
+const welcomeScreen = document.getElementById("welcomeScreen");
+const openButton = document.getElementById("openButton");
+const stage = document.querySelector(".stage");
+const player = document.getElementById("player");
+const bgMusic = document.getElementById("bgMusic");
+const dotsEl = document.getElementById("dots");
+const endingScreen = document.getElementById("endingScreen");
+
+const nextButton = document.getElementById("next");
+const prevButton = document.getElementById("prev");
+
+/* =====================================
+   VIDEO FILES
+===================================== */
+
+const videos = [
+  "Matcha.mp4",
+  "So.mp4",
+  "Pressure.mp4",
+  "Weight.mp4",
+  "Dreams.mp4",
+  "Version.mp4",
+  "Remember.mp4",
+  "You are loved.mp4"
+];
+
+let currentIndex = 0;
+let slideshowStarted = false;
+let endingShown = false;
+let isChanging = false;
+
+/* =====================================
+   CREATE DOTS
+===================================== */
+
+videos.forEach(() => {
+  const dot = document.createElement("span");
+  dot.className = "dot";
+  dotsEl.appendChild(dot);
+});
+
+function updateDots() {
+  [...dotsEl.children].forEach((dot, i) => {
+    dot.classList.toggle("on", i === currentIndex);
+  });
+}
+
+/* =====================================
+   LOAD VIDEO
+===================================== */
+
+
+function loadVideo(index) {
+
+  if (index < 0 || index >= videos.length) return;
+  if (isChanging) return;
+
+  isChanging = true;
+  currentIndex = index;
+
+  player.classList.add("fade");
+  player.pause();
+
+  player.oncanplay = async () => {
+
+    player.classList.remove("fade");
+
+    try {
+      await player.play();
+    } catch (error) {
+      console.error("Video playback error:", error);
+    }
+
+    isChanging = false;
+    player.oncanplay = null;
+  };
+
+  player.src = videos[currentIndex];
+  player.loop = true;
+  player.load();
+
+  updateDots();
+}
+
+
+/* =====================================
+   NEXT VIDEO
+===================================== */
+
+function nextVideo() {
+
+  if (!slideshowStarted || endingShown || isChanging) return;
+
+  if (currentIndex < videos.length - 1) {
+    loadVideo(currentIndex + 1);
+  } else {
+    showEnding();
+  }
+
+}
+
+/* =====================================
+   PREVIOUS VIDEO
+===================================== */
+
+function previousVideo() {
+
+  if (!slideshowStarted || endingShown || isChanging) return;
+
+  if (currentIndex > 0) {
+    loadVideo(currentIndex - 1);
+  }
+
+}
+
+/* =====================================
+   ENDING SCREEN
+===================================== */
+
+function showEnding() {
+
+  if (endingShown) return;
+
+  endingShown = true;
+
+  player.pause();
+
+  stage.classList.remove("show");
+  endingScreen.classList.add("show");
+
+}
+
+/* =====================================
+   OPEN BUTTON
+===================================== */
+
+openButton.addEventListener("click", () => {
+
+  if (slideshowStarted) return;
+
+  slideshowStarted = true;
+
+  // Reveal slideshow
+  stage.classList.add("show");
+  welcomeScreen.classList.add("hide");
+
+  // Keep video muted so background music
+  // can play independently.
+  player.muted = true;
+
+  // Start music directly from the button click
+  bgMusic.volume = 0.5;
+bgMusic.play().catch(error => {
+  console.error("Music error:", error);
+});
+
+  // Start first video independently
+  loadVideo(0);
+
+});
+
+
+
+/* =====================================
+   ARROW BUTTONS
+===================================== */
+
+nextButton.addEventListener("click", nextVideo);
+prevButton.addEventListener("click", previousVideo);
+
+/* =====================================
+   KEYBOARD CONTROLS
+===================================== */
+
+document.addEventListener("keydown", event => {
+
+  if (!slideshowStarted || endingShown) return;
+
+  if (event.key === "ArrowRight") {
+    event.preventDefault();
+    nextVideo();
+  }
+
+  if (event.key === "ArrowLeft") {
+    event.preventDefault();
+    previousVideo();
+  }
+
+});
+
+/* =====================================
+   VIDEO END
+===================================== */
+
+// Stay on the current video when it finishes.
+player.addEventListener("ended", () => {
+  player.pause();
+});
+
+// Optional: click video to mute/unmute
+player.addEventListener("click", () => {
+  player.muted = !player.muted;
+});
+
+/* =====================================
+   TWINKLING STARS
+===================================== */
+
+const sc = document.getElementById("stars");
+const sx = sc.getContext("2d");
+
+let stars = [];
+
+function sizeStars() {
+  sc.width = innerWidth;
+  sc.height = innerHeight;
+
+  const count = Math.floor(sc.width * sc.height / 5000);
+
+  stars = Array.from({ length: count }, () => ({
+    x: Math.random() * sc.width,
+    y: Math.random() * sc.height,
+    r: Math.random() * 1.4 + 0.3,
+    p: Math.random() * Math.PI * 2,
+    s: Math.random() * 0.02 + 0.005,
+    warm: Math.random() < 0.25
+  }));
+}
+
+function drawStars() {
+  sx.clearRect(0, 0, sc.width, sc.height);
+
+  for (const s of stars) {
+    s.p += s.s;
+
+    const a = 0.35 + 0.65 * Math.abs(Math.sin(s.p));
+
+    sx.beginPath();
+    sx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+
+    sx.fillStyle = s.warm
+      ? `rgba(255,214,228,${a})`
+      : `rgba(255,255,255,${a})`;
+
+    sx.shadowBlur = 6;
+    sx.shadowColor = s.warm ? "#ff8fb1" : "#ffffff";
+    sx.fill();
+  }
+
+  requestAnimationFrame(drawStars);
+}
+
+addEventListener("resize", sizeStars);
+sizeStars();
+drawStars();
+
+/* =====================================
+   CURSOR SPARKLES
+===================================== */
+
+const pc = document.getElementById("sparkles");
+const px = pc.getContext("2d");
+
+function sizeSparkles() {
+  pc.width = innerWidth;
+  pc.height = innerHeight;
+}
+
+addEventListener("resize", sizeSparkles);
+sizeSparkles();
+
+const colors = ["#ffffff", "#ffd6e4", "#ff8fb1", "#ffe3a3"];
+let particles = [];
+
+function star(ctx, x, y, r, rot) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(rot);
+  ctx.beginPath();
+
+  for (let i = 0; i < 8; i++) {
+    const rad = i % 2 ? r * 0.35 : r;
+    const ang = (i * Math.PI) / 4;
+    ctx.lineTo(Math.cos(ang) * rad, Math.sin(ang) * rad);
+  }
+
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function burst(x, y) {
+  for (let i = 0; i < 3; i++) {
+    particles.push({
+      x, y,
+      vx: (Math.random() - 0.5) * 1.8,
+      vy: Math.random() * 1.2 + 0.3,
+      r: Math.random() * 6 + 3,
+      rot: Math.random() * Math.PI,
+      vr: (Math.random() - 0.5) * 0.1,
+      life: 1,
+      color: colors[Math.floor(Math.random() * colors.length)]
+    });
+  }
+}
+
+addEventListener("pointermove", e => burst(e.clientX, e.clientY));
+
+function drawSparkles() {
+  px.clearRect(0, 0, pc.width, pc.height);
+
+  particles = particles.filter(p => p.life > 0);
+
+  for (const p of particles) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.02;
+    p.rot += p.vr;
+    p.life -= 0.018;
+
+    px.globalAlpha = Math.max(p.life, 0);
+    px.fillStyle = p.color;
+    px.shadowBlur = 12;
+    px.shadowColor = p.color;
+
+    star(px, p.x, p.y, p.r * p.life + 1, p.rot);
+  }
+
+  px.globalAlpha = 1;
+  requestAnimationFrame(drawSparkles);
+}
+
+if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  drawSparkles();
+}
+
+
+</script>
+</body>
+</html>
