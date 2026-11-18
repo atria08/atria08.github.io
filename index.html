@@ -518,6 +518,7 @@ function updateDots() {
 ===================================== */
 
 
+
 function loadVideo(index) {
 
   if (index < 0 || index >= videos.length) return;
@@ -543,7 +544,16 @@ function loadVideo(index) {
     player.oncanplay = null;
   };
 
-  player.src = videos[currentIndex];
+  player.onerror = () => {
+    console.error("Video loading error:", player.error);
+    console.error("Failed video:", videos[currentIndex]);
+
+    isChanging = false;
+    player.classList.remove("fade");
+    player.oncanplay = null;
+  };
+
+  player.src = videos[index];
   player.loop = true;
   player.load();
 
